@@ -23,9 +23,16 @@ export default defineConfig(() => ({
     cssTarget: CATALINA_TARGET,
   },
   optimizeDeps: {
-    esbuildOptions: {
-      target: CATALINA_TARGET,
-    },
+    // Vite 8 dep-optimizer runs Rolldown/oxc and IGNORES esbuildOptions (with a
+    // deprecation warning). The Catalina webview (Safari-14-class) hard-crashes on
+    // modern dep syntax (react-dom '=' class fields, pdf.js '#' private fields) —
+    // black window. Lower the prebundle syntax the same way the build pins safari14.
+    // ADR-0001 companion to esbuild/build targets below. Verified with jsc parse sweep.
+    rolldownOptions: {
+      transform: {
+        target: "safari13", // safari14 still emits ??=/||= — the Catalina engine rejects them (jsc-verified); one notch lower
+      },
+    } as never, // typed as RolldownOptions; transform.target validated empirically
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
