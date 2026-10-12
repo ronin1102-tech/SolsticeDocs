@@ -10,12 +10,13 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { renderPageToCanvas, PAGE_W, PAGE_H, dpr, type Doc } from "./lib/pdf";
 import {
-  loadSession,
+  loadSessionAsync,
   saveSession,
   clearSession,
   qaPost,
   type StoredAnnotation,
 } from "./lib/store";
+import { exportPdf } from "./lib/exportPdf";
 
 const WINDOW = 3; // render current ±3
 const TOOL_COLORS: Record<string, string> = { highlight: "#FDE047", underline: "#3B82F6" };
@@ -52,16 +53,31 @@ export default function Viewer({
   const curRects = useRef<number[][]>([]);
   const pageFromScroll = useRef(false); // C2 guard: page changes caused by scrolling must not re-scroll
 
-  // --- open restore ---
+  // --- open restore (async: native mode reads SQLite, browser reads LS) ---
   useEffect(() => {
-    const s = loadSession();
-    if (s && s.filePath === filePath) {
+    let alive = true;
+    loadSessionAsync().then((s) => {
+      if (!alive || !s || s.filePath !== filePath) return;
       setZoom(s.zoom);
       setPage(s.lastPage);
       setAnnos(s.annotations);
       setStatus(`restored p${s.lastPage}`);
-    }
+    });
+    return () => {
+      alive = false;
+    };
   }, [filePath]);
+
+  // --- export annotated PDF (native mode; browser shows a hint) ---
+  const onExport = async () => {
+    setStatus("exporting…");
+    try {
+      const to = await exportPdf(filePath, annos);
+      setStatus(`exported → ${to.split("/").pop()}`);
+    } catch (e) {
+      setStatus(`export failed: ${String(e).slice(0, 60)}`);
+    }
+  };
 
   // --- C2: move the viewport to the current page synchronously before paint.
   // DOM offsets (not computed pitch) — immune to margin asymmetries. Fires on
@@ -282,6 +298,13 @@ export default function Viewer({
             {t}
           </button>
         ))}
+        <button
+          data-qa="export"
+          className="rounded border border-white/10 px-2 py-0.5 text-zinc-300 hover:border-electric"
+          onClick={onExport}
+        >
+          export
+        </button>
         <button
           data-qa="clear"
           className="ml-auto rounded border border-white/10 px-2 py-0.5 text-zinc-500 hover:text-zinc-300"

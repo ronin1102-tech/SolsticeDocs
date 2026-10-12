@@ -6,6 +6,7 @@ mod db;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             db::import_document,
             db::import_document_async,
@@ -14,6 +15,9 @@ pub fn run() {
             db::list_annotations_cmd,
             db::delete_annotation_cmd,
             db::add_coursework_cmd,
+            db::list_documents_cmd,
+            db::write_export_cmd,
+            db::clear_annotations_cmd,
             db::bench_ipc
         ])
         .setup(|app| {

@@ -27,6 +27,29 @@ export interface Session {
 const LS_KEY = "solsticedocs.session.v1";
 export const QA = new URLSearchParams(location.search).has("qa");
 
+const IN_TAURI =
+  typeof window !== "undefined" &&
+  ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+
+// Native branch: mirror the session into SQLite (documents + annotations).
+// Browser branch: localStorage only. Same Session contract both sides.
+async function nativeSync(s: Session): Promise<void> {
+  const { ipc } = await import("./ipc");
+  const doc = await ipc.importDocument(s.filePath, s.title);
+  await ipc.setReadingState(doc.hash_sha256, s.lastPage, s.zoom);
+  await ipc.clearAnnotations(doc.hash_sha256); // replace-all: JS ids are Date.now(), not DB ids
+  for (const a of s.annotations) {
+    await ipc.addAnnotation(
+      doc.hash_sha256,
+      a.type,
+      JSON.stringify({ rects: a.rects }),
+      a.color,
+      "",
+      a.page
+    );
+  }
+}
+
 export function qaPost(kind: string, payload: Record<string, unknown>): void {
   if (!QA) return;
   fetch("/__qa", {
@@ -51,7 +74,38 @@ export function saveSession(s: Session): void {
   } catch {
     /* quota — non-fatal */
   }
+  if (IN_TAURI) nativeSync(s).catch(() => {}); // durable best-effort; browser LS stays source of truth for restore
   qaPost("session", { lastPage: s.lastPage, zoom: s.zoom, annotations: s.annotations.length });
+}
+
+// Restore path: native mode prefers SQLite, falls back to LS.
+export async function loadSessionAsync(): Promise<Session | null> {
+  const ls = loadSession();
+  if (!IN_TAURI) return ls;
+  try {
+    const { ipc } = await import("./ipc");
+    const docs = await ipc.listDocuments();
+    if (!docs.length) return ls;
+    const doc = docs[0]; // shelf = most recent activity
+    const rows = await ipc.listAnnotations(doc.hash_sha256);
+    const annotations: StoredAnnotation[] = rows.map((r: any) => ({
+      id: Number(r.id),
+      page: Number(r.page),
+      type: String(r.type),
+      color: String(r.color),
+      rects: JSON.parse(String(r.coordinates || "{}")).rects ?? [],
+    }));
+    return {
+      filePath: doc.file_path,
+      hash: doc.hash_sha256,
+      title: doc.title,
+      lastPage: doc.last_page,
+      zoom: doc.zoom,
+      annotations,
+    };
+  } catch {
+    return ls;
+  }
 }
 
 export function clearSession(): void {

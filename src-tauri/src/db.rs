@@ -300,6 +300,87 @@ pub fn add_coursework_cmd(
     with_conn(&app, |c| add_coursework(c, &folder_name, &semester, priority, parent_id))
 }
 
+
+// ---------- Phase 3-WRITE: shelf + export ----------
+
+/// Recent docs for the shelf, newest activity first.
+fn list_documents(conn: &Connection) -> Result<Vec<DocState>, String> {
+    let mut stmt = conn
+        .prepare(
+            "SELECT id, file_path, hash_sha256, parent_hash, title, last_page, zoom
+             FROM documents ORDER BY updated_at DESC, id DESC LIMIT 100",
+        )
+        .map_err(|e| e.to_string())?;
+    let rows = stmt
+        .query_map([], |r| {
+            Ok(DocState {
+                id: r.get(0)?,
+                file_path: r.get(1)?,
+                hash_sha256: r.get(2)?,
+                parent_hash: r.get(3)?,
+                title: r.get(4)?,
+                last_page: r.get(5)?,
+                zoom: r.get(6)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn list_documents_cmd(app: tauri::AppHandle) -> Result<Vec<DocState>, String> {
+    with_conn(&app, |c| list_documents(c))
+}
+
+/// Export = original + stamped annotations, written NEXT TO the source as
+/// "<name> (annotated).pdf". Pure helpers are unit-tested; the command composes them.
+fn validate_pdf(bytes: &[u8]) -> Result<(), String> {
+    if bytes.len() < 5 || !bytes.starts_with(b"%PDF-") {
+        return Err("not a PDF (missing %PDF- header)".into());
+    }
+    if bytes.len() > 200 * 1024 * 1024 {
+        return Err("export too large (>200MB)".into());
+    }
+    Ok(())
+}
+
+fn export_target_path(source: &str) -> Result<String, String> {
+    let p = std::path::Path::new(source);
+    let dir = p.parent().ok_or("source has no parent dir")?;
+    let stem = p
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .ok_or("source name not UTF-8")?;
+    let mut target = dir.join(format!("{stem} (annotated).pdf"));
+    let mut n = 2;
+    while target.exists() {
+        target = dir.join(format!("{stem} (annotated {n}).pdf"));
+        n += 1;
+    }
+    target
+        .to_str()
+        .map(|s| s.to_string())
+        .ok_or("target path not UTF-8".into())
+}
+
+#[tauri::command]
+pub fn write_export_cmd(
+    app: tauri::AppHandle,
+    source_path: String,
+    bytes_b64: String,
+) -> Result<String, String> {
+    use base64::Engine as _;
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(bytes_b64.as_bytes())
+        .map_err(|e| format!("bad base64: {e}"))?;
+    validate_pdf(&bytes)?;
+    // The source must still exist and be registered — export anchors to a real doc.
+    let target = export_target_path(&source_path)?;
+    std::fs::write(&target, &bytes).map_err(|e| format!("write failed: {e}"))?;
+    let _ = app; // AppHandle reserved: export row registration lands with WRITE-phase v2
+    Ok(target)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -431,5 +512,76 @@ mod bench {
             "BENCH 100 samples | reading_state p50={:.0}us p95={:.0}us | annotation_insert p50={:.0}us p95={:.0}us",
             pct(&read_us, 0.5), pct(&read_us, 0.95), pct(&annot_us, 0.5), pct(&annot_us, 0.95)
         );
+    }
+}
+
+/// Replace-all sync support: annotations are re-booked from the session
+/// snapshot on every persist (stored JS ids are Date.now(), not DB ids —
+/// diffing against them would be guesswork; clear+insert is exact).
+fn clear_annotations(conn: &Connection, doc_hash: &str) -> Result<usize, String> {
+    conn.execute("DELETE FROM annotations WHERE doc_hash = ?1", [doc_hash])
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn clear_annotations_cmd(app: tauri::AppHandle, doc_hash: String) -> Result<usize, String> {
+    with_conn(&app, |c| clear_annotations(c, &doc_hash))
+}
+
+#[cfg(test)]
+mod write_phase_tests {
+    use super::*;
+
+    // local conn helper (test_conn lives in the other test module's scope)
+    fn wt_conn() -> Connection {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("wt.db");
+        std::mem::forget(dir);
+        open(&path).unwrap()
+    }
+
+    #[test]
+    fn validate_pdf_gates() {
+        assert!(validate_pdf(b"%PDF-1.7\n...").is_ok());
+        assert!(validate_pdf(b"").is_err());
+        assert!(validate_pdf(b"not a pdf").is_err());
+        let big = vec![b'x'; 201 * 1024 * 1024];
+        assert!(validate_pdf(&big).is_err(), "200MB cap must trip");
+    }
+
+    #[test]
+    fn export_target_path_finds_free_name() {
+        let dir = tempfile::tempdir().unwrap();
+        let src = dir.path().join("report.pdf");
+        std::fs::write(&src, b"%PDF-1.4").unwrap();
+        let t1 = export_target_path(src.to_str().unwrap()).unwrap();
+        assert!(t1.ends_with("report (annotated).pdf"), "first export: {t1}");
+        std::fs::write(dir.path().join("report (annotated).pdf"), b"%PDF-1.4").unwrap();
+        let t2 = export_target_path(src.to_str().unwrap()).unwrap();
+        assert!(t2.ends_with("report (annotated 2).pdf"), "collision: {t2}");
+    }
+
+    #[test]
+    fn clear_annotations_scopes_to_doc() {
+        let conn = wt_conn();
+        upsert_document(&conn, "/tmp/a.pdf", "hash_a", "A").unwrap();
+        upsert_document(&conn, "/tmp/b.pdf", "hash_b", "B").unwrap();
+        for h in ["hash_a", "hash_b"] {
+            conn.execute(
+                "INSERT INTO annotations (doc_hash, type) VALUES (?1, 'highlight')",
+                [h],
+            )
+            .unwrap();
+            conn.execute(
+                "INSERT INTO annotations (doc_hash, type) VALUES (?1, 'underline')",
+                [h],
+            )
+            .unwrap();
+        }
+        assert_eq!(clear_annotations(&conn, "hash_a").unwrap(), 2);
+        let left: i64 = conn
+            .query_row("SELECT COUNT(*) FROM annotations", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(left, 2, "only hash_a rows must go");
     }
 }

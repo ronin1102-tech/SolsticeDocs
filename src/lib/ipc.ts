@@ -33,7 +33,18 @@ export interface DocState {
   zoom: number;
 }
 
+// Asset-protocol URL for a local file (native mode); plain path in browser mode.
+export async function sourceUrlAsync(p: string): Promise<string> {
+  if (!IN_TAURI) return p;
+  const { convertFileSrc } = await import("@tauri-apps/api/core");
+  return convertFileSrc(p);
+}
+
 export const ipc = {
+  listDocuments: () => invokeCmd<DocState[]>("list_documents_cmd", {}),
+  writeExport: (sourcePath: string, bytesB64: string) =>
+    invokeCmd<string>("write_export_cmd", { sourcePath, bytesB64 }),
+  clearAnnotations: (docHash: string) => invokeCmd<number>("clear_annotations_cmd", { docHash }),
   importDocument: (filePath: string, title: string) =>
     invokeCmd<DocState>("import_document", { filePath, title }),
   setReadingState: (docHash: string, lastPage: number, zoom: number) =>

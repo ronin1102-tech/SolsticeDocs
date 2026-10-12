@@ -81,3 +81,17 @@ export a new PDF with annotations stamped in. Text-editing-the-file is NOT in v1
 - **Target Executor:** Cori (implementation; Rust commands minimal, per lane rules)
 - **QA Verifier:** Vesper (post-phase audit, read-only — per lane rules he never writes here)
 - **Expected Artifact:** source code (frontend + 2 Rust commands) + this spec + phase report in chat
+
+## Implementation note (added at close-out, 2026-10-12)
+
+- **3 Rust commands, not 2:** native persist is a replace-all sync (session snapshot →
+  clear + insert), because stored JS annotation ids are `Date.now()` — diffing against DB
+  ids would be guesswork. `clear_annotations_cmd` added with its own scoped-delete test.
+- **Export byte path = base64 through IPC** (spec's fallback option), not a second plugin:
+  multi-MB PDFs cross once per export, chunked `String.fromCharCode` + `btoa`; no fs
+  plugin, plugin surface stays at one (dialog).
+- **Store contract kept:** `saveSession` stays synchronous; native sync is fire-and-forget
+  behind the seam. Restore goes through new `loadSessionAsync` (SQLite first, LS fallback,
+  both modes same `Session` shape). Viewer never learned about storage — spec held.
+- **Compile-time registration proof:** `cargo test` builds the bin target (main.rs unittests
+  ran), so `generate_handler!` registration of all new commands type-checks.
