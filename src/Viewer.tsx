@@ -53,6 +53,44 @@ export default function Viewer({
   const curRects = useRef<number[][]>([]);
   const pageFromScroll = useRef(false); // C2 guard: page changes caused by scrolling must not re-scroll
 
+  // Per-page geometry (C1 v2): real page boxes incl. /Rotate and landscape — the
+  // PAGE_W/PAGE_H constants were portrait-letter assumptions that sheared real
+  // slide-deck imports (Tracy's Module-1 deck: landscape slides in portrait boxes).
+  const [dims, setDims] = useState<Map<number, { w: number; h: number }>>(new Map());
+  const dimsRef = useRef(dims);
+  dimsRef.current = dims;
+  const dimFor = (n: number): { w: number; h: number } =>
+    dimsRef.current.get(n) ?? { w: PAGE_W, h: PAGE_H };
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const m = new Map<number, { w: number; h: number }>();
+      for (let n = 1; n <= doc.numPages; n++) {
+        try {
+          const pg = await doc.getPage(n);
+          const vp = pg.getViewport({ scale: 1 }); // user-space box, rotation applied
+          m.set(n, { w: vp.width, h: vp.height });
+        } catch {
+          m.set(n, { w: PAGE_W, h: PAGE_H });
+        }
+      }
+      if (alive) setDims(m);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [doc]);
+
+  // variable pitch (C3 v2): cumulative offsets, binary-searched in onScroll
+  const offsetsRef = useRef<number[]>([0]);
+  useLayoutEffect(() => {
+    const arr = [0];
+    for (let i = 1; i <= doc.numPages; i++) arr.push(arr[i - 1] + dimFor(i).h * zoom + 16);
+    offsetsRef.current = arr;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dims, zoom, doc]);
+
   // --- open restore (async: native mode reads SQLite, browser reads LS) ---
   useEffect(() => {
     let alive = true;
@@ -95,7 +133,7 @@ export default function Viewer({
     const child = col?.children[page - 1] as HTMLElement | undefined;
     if (child) el.scrollTop = child.offsetTop - 4;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [doc, page]);
+  }, [doc, page, dims]);
 
   // --- persist (durable-on-stroke-end contract: every mutation calls this) ---
   const persist = (nextZoom: number, nextPage: number, nextAnnos: StoredAnnotation[]) => {
@@ -134,8 +172,15 @@ export default function Viewer({
     render();
 
     const onScroll = () => {
-      const h = PAGE_H * zoom + 16; // C3: pitch is now uniform
-      const p = Math.min(doc.numPages, Math.max(1, Math.round(container.scrollTop / h) + 1));
+      const offs = offsetsRef.current;
+      const st = container.scrollTop;
+      let lo = 1, hi = doc.numPages;
+      while (lo < hi) {
+        const mid = (lo + hi + 1) >> 1;
+        if (offs[mid - 1] <= st) lo = mid;
+        else hi = mid - 1;
+      }
+      const p = lo;
       if (p !== page) {
         pageFromScroll.current = true;
         setPage(p);
@@ -159,7 +204,7 @@ export default function Viewer({
   const drawOverlayFor = (n: number, c: HTMLCanvasElement) => {
     const ctx = c.getContext("2d");
     if (!ctx) return;
-    const k = c.width / (PAGE_W * zoom);
+    const k = c.width / (dimFor(n).w * zoom);
     ctx.clearRect(0, 0, c.width, c.height);
     for (const a of overlayFor(n)) {
       ctx.fillStyle = a.color + "55"; // translucent fill
@@ -167,7 +212,7 @@ export default function Viewer({
       ctx.lineWidth = Math.max(1, 2 * k);
       for (const [x, y, w, h] of a.rects) {
         const rx = x * zoom * k;
-        const ry = (PAGE_H - y - h) * zoom * k; // PDF origin bottom-left → canvas top-left
+        const ry = (dimFor(n).h - y - h) * zoom * k; // PDF origin bottom-left → canvas top-left
         if (a.type === "highlight") {
           ctx.fillRect(rx, ry, w * zoom * k, h * zoom * k);
         } else {
@@ -190,22 +235,23 @@ export default function Viewer({
   }, [annos, zoom, page]);
 
   // --- mouse → PDF-units rect collection (horizontal bands; good enough v1) ---
-  const onOverlayDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const onOverlayDown = (e: React.MouseEvent<HTMLCanvasElement>, n: number) => {
     drawing.current = true;
     curRects.current = [];
-    record(e);
+    record(e, n);
   };
-  const onOverlayMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (drawing.current) record(e);
+  const onOverlayMove = (e: React.MouseEvent<HTMLCanvasElement>, n: number) => {
+    if (drawing.current) record(e, n);
   };
-  const record = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const record = (e: React.MouseEvent<HTMLCanvasElement>, n: number) => {
     const c = e.currentTarget;
     const r = c.getBoundingClientRect();
-    // C1: the overlay now fills the page box, so this conversion is zoom-independent
-    const x = ((e.clientX - r.left) / r.width) * PAGE_W;
+    const d = dimFor(n);
+    // C1: the overlay fills the page box, so this conversion is zoom-independent
+    const x = ((e.clientX - r.left) / r.width) * d.w;
     const h = 14; // band height in PDF units
-    const yTop = ((e.clientY - r.top) / r.height) * PAGE_H;
-    const y = PAGE_H - yTop - h; // store as PDF-units bottom-left origin
+    const yTop = ((e.clientY - r.top) / r.height) * d.h;
+    const y = d.h - yTop - h; // store as PDF-units bottom-left origin
     const rects = curRects.current;
     const last = rects[rects.length - 1];
     if (last && Math.abs(last[1] - y) < h * 0.6) {
@@ -214,20 +260,20 @@ export default function Viewer({
       last[0] = Math.min(last[0], x);
       last[2] = x2 - last[0];
     } else {
-      rects.push([Math.min(x, PAGE_W - 10), y, 10, h]);
+      rects.push([Math.min(x, d.w - 10), y, 10, h]);
     }
-    drawLive(c);
+    drawLive(c, n);
   };
-  const drawLive = (c: HTMLCanvasElement) => {
+  const drawLive = (c: HTMLCanvasElement, n: number) => {
     const ctx = c.getContext("2d");
     if (!ctx) return;
-    const k = c.width / (PAGE_W * zoom);
+    const k = c.width / (dimFor(n).w * zoom);
     const color = TOOL_COLORS[tool];
     ctx.fillStyle = color + "55";
     ctx.strokeStyle = color;
     for (const [x, y, w, h] of curRects.current) {
       const rx = x * zoom * k;
-      const ry = (PAGE_H - y - h) * zoom * k;
+      const ry = (dimFor(n).h - y - h) * zoom * k;
       if (tool === "highlight") ctx.fillRect(rx, ry, w * zoom * k, h * zoom * k);
       else {
         ctx.lineWidth = Math.max(1, 2 * k);
@@ -262,6 +308,10 @@ export default function Viewer({
     setZoom(zz);
     persist(zz, page, annos);
   };
+
+  const colW = dims.size
+    ? Math.max(...[...dims.values()].map((d) => d.w), PAGE_W)
+    : PAGE_W;
 
   const pageNumbers: number[] = [];
   for (let n = 1; n <= doc.numPages; n++) pageNumbers.push(n);
@@ -318,15 +368,17 @@ export default function Viewer({
         <span data-qa="status" className="text-[10px] text-zinc-600">{status}</span>
       </div>
       <div ref={scroller} data-qa="scroller" className="flex-1 overflow-y-auto bg-zinc-900">
-        <div className="mx-auto py-4" style={{ width: PAGE_W * zoom }}>
+        <div className="mx-auto py-4" style={{ width: colW * zoom }}>
           {pageNumbers.map((n) => {
             const inWindow = Math.abs(n - page) <= WINDOW;
-            if (!inWindow) return <div key={n} className={SLOT_CLS} style={{ height: PAGE_H * zoom }} />;
+            if (!inWindow)
+              return <div key={n} className={SLOT_CLS} style={{ width: dimFor(n).w * zoom, height: dimFor(n).h * zoom }} />;
             return (
               <PageView
                 key={n}
                 num={n}
                 zoom={zoom}
+                dim={dimFor(n)}
                 register={(s) => slots.current.set(n, s)}
                 overlayFor={overlayFor}
                 onDown={onOverlayDown}
@@ -345,6 +397,7 @@ export default function Viewer({
 function PageView({
   num,
   zoom,
+  dim,
   register,
   overlayFor,
   onDown,
@@ -354,10 +407,11 @@ function PageView({
 }: {
   num: number;
   zoom: number;
+  dim: { w: number; h: number };
   register: (s: PageSlot) => void;
   overlayFor: (n: number) => StoredAnnotation[];
-  onDown: (e: React.MouseEvent<HTMLCanvasElement>) => void;
-  onMove: (e: React.MouseEvent<HTMLCanvasElement>) => void;
+  onDown: (e: React.MouseEvent<HTMLCanvasElement>, n: number) => void;
+  onMove: (e: React.MouseEvent<HTMLCanvasElement>, n: number) => void;
   onUp: (n: number) => void;
   drawOverlayFor: (n: number, c: HTMLCanvasElement) => void;
 }) {
@@ -381,21 +435,21 @@ function PageView({
     const c = overlayRef.current;
     if (!c) return;
     const k = dpr();
-    c.width = Math.round(PAGE_W * zoom * k);
-    c.height = Math.round(PAGE_H * zoom * k);
+    c.width = Math.round(dim.w * zoom * k);
+    c.height = Math.round(dim.h * zoom * k);
     drawOverlayFor(num, c); // paint stored annos onto the fresh bitmap
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zoom]);
 
   return (
-    <div className={SLOT_CLS} style={{ height: PAGE_H * zoom }}>
+    <div className={SLOT_CLS} style={{ width: dim.w * zoom, height: dim.h * zoom }}>
       <canvas ref={canvasRef} className="absolute inset-0" />
       <canvas
         ref={overlayRef}
         data-qa={`overlay-${num}`}
         className="absolute inset-0 h-full w-full cursor-crosshair"
-        onMouseDown={(e) => onDown(e)}
-        onMouseMove={(e) => onMove(e)}
+        onMouseDown={(e) => onDown(e, num)}
+        onMouseMove={(e) => onMove(e, num)}
         onMouseUp={() => onUp(num)}
       />
       <span className="absolute -right-9 top-2 text-[10px] text-zinc-600">{num}</span>
