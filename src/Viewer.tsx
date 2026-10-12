@@ -1,7 +1,14 @@
 // DOCS-03-RENDER: windowed continuous scroll (±3 pages), overlay annotation
 // canvas, durable-on-stroke-end persistence via store.ts.
-import { useEffect, useRef, useState } from "react";
-import { renderPageToCanvas, PAGE_W, PAGE_H, type Doc } from "./lib/pdf";
+// 2026-10-12 fix pass per docs/RENDER-SPEC.md:
+//   C1  overlay bitmap+CSS sized to the page box (canvas is a replaced element;
+//       `absolute inset-0` alone left it at the 300x150 default)
+//   C2  useLayoutEffect mount/restore scroll using DOM offsets
+//   C3  uniform slot pitch (placeholders share the rendered-page box)
+//   C1a band merge can no longer shrink a rect's right edge
+//   plus: restored annotations repaint once their page's bitmap is sized.
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { renderPageToCanvas, PAGE_W, PAGE_H, dpr, type Doc } from "./lib/pdf";
 import {
   loadSession,
   saveSession,
@@ -12,6 +19,8 @@ import {
 
 const WINDOW = 3; // render current ±3
 const TOOL_COLORS: Record<string, string> = { highlight: "#FDE047", underline: "#3B82F6" };
+// C3: one shared box for rendered pages and placeholders — uniform pitch.
+const SLOT_CLS = "relative mb-4 bg-white shadow-lg";
 
 interface PageSlot {
   num: number;
@@ -41,6 +50,7 @@ export default function Viewer({
   const sessionRef = useRef({ filePath, hash: filePath, title: filePath });
   const drawing = useRef(false);
   const curRects = useRef<number[][]>([]);
+  const pageFromScroll = useRef(false); // C2 guard: page changes caused by scrolling must not re-scroll
 
   // --- open restore ---
   useEffect(() => {
@@ -52,6 +62,24 @@ export default function Viewer({
       setStatus(`restored p${s.lastPage}`);
     }
   }, [filePath]);
+
+  // --- C2: move the viewport to the current page synchronously before paint.
+  // DOM offsets (not computed pitch) — immune to margin asymmetries. Fires on
+  // mount (deep link) and on restore-setPage; skipped when the page change
+  // came from onScroll (else it would pin the viewport to page tops).
+  useLayoutEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    if (pageFromScroll.current) {
+      pageFromScroll.current = false;
+      return;
+    }
+    // slots live one level down: scroller > column div > slot divs
+    const col = el.firstElementChild as HTMLElement | undefined;
+    const child = col?.children[page - 1] as HTMLElement | undefined;
+    if (child) el.scrollTop = child.offsetTop - 4;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doc, page]);
 
   // --- persist (durable-on-stroke-end contract: every mutation calls this) ---
   const persist = (nextZoom: number, nextPage: number, nextAnnos: StoredAnnotation[]) => {
@@ -90,9 +118,10 @@ export default function Viewer({
     render();
 
     const onScroll = () => {
-      const h = PAGE_H * zoom;
+      const h = PAGE_H * zoom + 16; // C3: pitch is now uniform
       const p = Math.min(doc.numPages, Math.max(1, Math.round(container.scrollTop / h) + 1));
       if (p !== page) {
+        pageFromScroll.current = true;
         setPage(p);
         persist(zoom, p, annos);
       }
@@ -110,32 +139,36 @@ export default function Viewer({
     return annos.filter((a) => a.page === n);
   };
 
-  useEffect(() => {
-    // redraw overlays whenever annos or zoom change
-    for (const [n, slot] of slots.current) {
-      if (!slot.overlay) continue;
-      const c = slot.overlay;
-      const ctx = c.getContext("2d");
-      if (!ctx) continue;
-      const k = c.width / (PAGE_W * zoom);
-      ctx.clearRect(0, 0, c.width, c.height);
-      for (const a of overlayFor(n)) {
-        ctx.fillStyle = a.color + "55"; // translucent fill
-        ctx.strokeStyle = a.color;
-        ctx.lineWidth = Math.max(1, 2 * k);
-        for (const [x, y, w, h] of a.rects) {
-          const rx = x * zoom * k;
-          const ry = (PAGE_H - y - h) * zoom * k; // PDF origin bottom-left → canvas top-left
-          if (a.type === "highlight") {
-            ctx.fillRect(rx, ry, w * zoom * k, h * zoom * k);
-          } else {
-            ctx.beginPath();
-            ctx.moveTo(rx, ry + h * zoom * k);
-            ctx.lineTo(rx + w * zoom * k, ry + h * zoom * k);
-            ctx.stroke();
-          }
+  // paint one slot's stored annotations onto its overlay bitmap
+  const drawOverlayFor = (n: number, c: HTMLCanvasElement) => {
+    const ctx = c.getContext("2d");
+    if (!ctx) return;
+    const k = c.width / (PAGE_W * zoom);
+    ctx.clearRect(0, 0, c.width, c.height);
+    for (const a of overlayFor(n)) {
+      ctx.fillStyle = a.color + "55"; // translucent fill
+      ctx.strokeStyle = a.color;
+      ctx.lineWidth = Math.max(1, 2 * k);
+      for (const [x, y, w, h] of a.rects) {
+        const rx = x * zoom * k;
+        const ry = (PAGE_H - y - h) * zoom * k; // PDF origin bottom-left → canvas top-left
+        if (a.type === "highlight") {
+          ctx.fillRect(rx, ry, w * zoom * k, h * zoom * k);
+        } else {
+          ctx.beginPath();
+          ctx.moveTo(rx, ry + h * zoom * k);
+          ctx.lineTo(rx + w * zoom * k, ry + h * zoom * k);
+          ctx.stroke();
         }
       }
+    }
+  };
+
+  useEffect(() => {
+    // redraw overlays on in-DOM slots whenever annos or zoom change;
+    // freshly mounted PageViews paint themselves after sizing (see PageView)
+    for (const [n, slot] of slots.current) {
+      if (slot.overlay && slot.overlay.isConnected) drawOverlayFor(n, slot.overlay);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [annos, zoom, page]);
@@ -152,6 +185,7 @@ export default function Viewer({
   const record = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const c = e.currentTarget;
     const r = c.getBoundingClientRect();
+    // C1: the overlay now fills the page box, so this conversion is zoom-independent
     const x = ((e.clientX - r.left) / r.width) * PAGE_W;
     const h = 14; // band height in PDF units
     const yTop = ((e.clientY - r.top) / r.height) * PAGE_H;
@@ -159,9 +193,10 @@ export default function Viewer({
     const rects = curRects.current;
     const last = rects[rects.length - 1];
     if (last && Math.abs(last[1] - y) < h * 0.6) {
-      // merge into current band
+      // C1a: merge into current band — extend to x on BOTH sides, never shrink
+      const x2 = Math.max(last[0] + last[2], x);
       last[0] = Math.min(last[0], x);
-      last[2] = Math.max(last[2], Math.abs(x - last[0]) + 1);
+      last[2] = x2 - last[0];
     } else {
       rects.push([Math.min(x, PAGE_W - 10), y, 10, h]);
     }
@@ -263,7 +298,7 @@ export default function Viewer({
         <div className="mx-auto py-4" style={{ width: PAGE_W * zoom }}>
           {pageNumbers.map((n) => {
             const inWindow = Math.abs(n - page) <= WINDOW;
-            if (!inWindow) return <div key={n} style={{ height: PAGE_H * zoom }} />;
+            if (!inWindow) return <div key={n} className={SLOT_CLS} style={{ height: PAGE_H * zoom }} />;
             return (
               <PageView
                 key={n}
@@ -274,6 +309,7 @@ export default function Viewer({
                 onDown={onOverlayDown}
                 onMove={onOverlayMove}
                 onUp={onOverlayUp}
+                drawOverlayFor={drawOverlayFor}
               />
             );
           })}
@@ -291,6 +327,7 @@ function PageView({
   onDown,
   onMove,
   onUp,
+  drawOverlayFor,
 }: {
   num: number;
   zoom: number;
@@ -299,6 +336,7 @@ function PageView({
   onDown: (e: React.MouseEvent<HTMLCanvasElement>) => void;
   onMove: (e: React.MouseEvent<HTMLCanvasElement>) => void;
   onUp: (n: number) => void;
+  drawOverlayFor: (n: number, c: HTMLCanvasElement) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
@@ -312,13 +350,27 @@ function PageView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // C1: size the overlay bitmap to the page box and re-size on zoom change.
+  // A <canvas> is a replaced element — without this it stays at the 300x150
+  // default no matter what CSS says (RENDER-SPEC C1). onSized lets the parent
+  // repaint stored annotations onto the freshly sized bitmap.
+  useLayoutEffect(() => {
+    const c = overlayRef.current;
+    if (!c) return;
+    const k = dpr();
+    c.width = Math.round(PAGE_W * zoom * k);
+    c.height = Math.round(PAGE_H * zoom * k);
+    drawOverlayFor(num, c); // paint stored annos onto the fresh bitmap
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zoom]);
+
   return (
-    <div className="relative mb-4 bg-white shadow-lg" style={{ height: PAGE_H * zoom }}>
+    <div className={SLOT_CLS} style={{ height: PAGE_H * zoom }}>
       <canvas ref={canvasRef} className="absolute inset-0" />
       <canvas
         ref={overlayRef}
         data-qa={`overlay-${num}`}
-        className="absolute inset-0 cursor-crosshair"
+        className="absolute inset-0 h-full w-full cursor-crosshair"
         onMouseDown={(e) => onDown(e)}
         onMouseMove={(e) => onMove(e)}
         onMouseUp={() => onUp(num)}

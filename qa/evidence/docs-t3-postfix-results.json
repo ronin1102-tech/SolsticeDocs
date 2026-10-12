@@ -1,0 +1,184 @@
+{
+  "samples": [
+    {
+      "st": 33048,
+      "truePage": 42,
+      "ind": 42,
+      "drift": 0
+    },
+    {
+      "st": 66048,
+      "truePage": 83,
+      "ind": 83,
+      "drift": 0
+    },
+    {
+      "st": 99048,
+      "truePage": 123,
+      "ind": 124,
+      "drift": 1
+    },
+    {
+      "st": 132048,
+      "truePage": 164,
+      "ind": 164,
+      "drift": 0
+    },
+    {
+      "st": 165048,
+      "truePage": 205,
+      "ind": 205,
+      "drift": 0
+    },
+    {
+      "st": 198048,
+      "truePage": 246,
+      "ind": 246,
+      "drift": 0
+    },
+    {
+      "st": 231048,
+      "truePage": 287,
+      "ind": 287,
+      "drift": 0
+    },
+    {
+      "st": 264048,
+      "truePage": 328,
+      "ind": 328,
+      "drift": 0
+    },
+    {
+      "st": 297048,
+      "truePage": 369,
+      "ind": 369,
+      "drift": 0
+    },
+    {
+      "st": 330048,
+      "truePage": 409,
+      "ind": 409,
+      "drift": 0
+    },
+    {
+      "st": 363048,
+      "truePage": 450,
+      "ind": 450,
+      "drift": 0
+    },
+    {
+      "st": 396048,
+      "truePage": 491,
+      "ind": 491,
+      "drift": 0
+    },
+    {
+      "st": 429048,
+      "truePage": 532,
+      "ind": 532,
+      "drift": 0
+    },
+    {
+      "st": 462048,
+      "truePage": 573,
+      "ind": 573,
+      "drift": 0
+    },
+    {
+      "st": 495048,
+      "truePage": 614,
+      "ind": 614,
+      "drift": 0
+    },
+    {
+      "st": 528048,
+      "truePage": 654,
+      "ind": 655,
+      "drift": 1
+    },
+    {
+      "st": 561048,
+      "truePage": 695,
+      "ind": 695,
+      "drift": 0
+    },
+    {
+      "st": 594048,
+      "truePage": 736,
+      "ind": 736,
+      "drift": 0
+    },
+    {
+      "st": 627048,
+      "truePage": 777,
+      "ind": 777,
+      "drift": 0
+    },
+    {
+      "st": 660048,
+      "truePage": 818,
+      "ind": 818,
+      "drift": 0
+    },
+    {
+      "st": 693048,
+      "truePage": 859,
+      "ind": 859,
+      "drift": 0
+    },
+    {
+      "st": 726048,
+      "truePage": 899,
+      "ind": 900,
+      "drift": 1
+    },
+    {
+      "st": 759048,
+      "truePage": 940,
+      "ind": 940,
+      "drift": 0
+    },
+    {
+      "st": 792048,
+      "truePage": 981,
+      "ind": 981,
+      "drift": 0
+    },
+    {
+      "st": 825048,
+      "truePage": 1022,
+      "ind": 1022,
+      "drift": 0
+    },
+    {
+      "st": 858048,
+      "truePage": 1063,
+      "ind": 1063,
+      "drift": 0
+    },
+    {
+      "st": 891048,
+      "truePage": 1104,
+      "ind": 1104,
+      "drift": 0
+    },
+    {
+      "st": 924048,
+      "truePage": 1145,
+      "ind": 1145,
+      "drift": 0
+    },
+    {
+      "st": 957048,
+      "truePage": 1185,
+      "ind": 1185,
+      "drift": 0
+    }
+  ],
+  "maxDrift": 1,
+  "longTasks": {
+    "count": 110,
+    "max": 220,
+    "total": 15656
+  }
+}

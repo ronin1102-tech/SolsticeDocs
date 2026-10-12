@@ -1,0 +1,333 @@
+{
+  "startedAt": "2026-10-12T16:42:37.504Z",
+  "subtests": {
+    "T0": {
+      "g": {
+        "st": 484040,
+        "ind": 600,
+        "zoom": "100%",
+        "status": "rendering p598",
+        "overlayBitmap": [
+          612,
+          792
+        ],
+        "overlayCss": [
+          612,
+          792
+        ],
+        "pitches": [
+          808,
+          808,
+          808,
+          808,
+          808
+        ]
+      },
+      "vis": {
+        "top": 44,
+        "inView": true
+      },
+      "truth": 600
+    },
+    "T1_T4": {
+      "g0": {
+        "st": 1664,
+        "ind": 3,
+        "zoom": "100%",
+        "status": "loading",
+        "overlayBitmap": [
+          612,
+          792
+        ],
+        "overlayCss": [
+          612,
+          792
+        ],
+        "pitches": [
+          808,
+          808,
+          808,
+          808,
+          808
+        ]
+      },
+      "g1": {
+        "st": 1664,
+        "ind": 3,
+        "zoom": "100%",
+        "status": "rendering p2",
+        "overlayBitmap": [
+          612,
+          792
+        ],
+        "overlayCss": [
+          612,
+          792
+        ],
+        "pitches": [
+          808,
+          808,
+          808,
+          808,
+          808
+        ]
+      },
+      "live": [
+        252,
+        225,
+        72,
+        85
+      ],
+      "rel": [
+        252,
+        225,
+        72,
+        85
+      ],
+      "r0": [
+        40,
+        580,
+        532,
+        14
+      ]
+    },
+    "T2": {
+      "b150": [
+        252,
+        225,
+        72,
+        85
+      ],
+      "b175": [
+        252,
+        225,
+        72,
+        85
+      ],
+      "bRel": [
+        252,
+        225,
+        72,
+        85
+      ],
+      "gA": {
+        "st": 48,
+        "ind": 1,
+        "zoom": "150%",
+        "status": "rendering p2",
+        "overlayBitmap": [
+          918,
+          1188
+        ],
+        "overlayCss": [
+          918,
+          1188
+        ],
+        "pitches": [
+          1204,
+          1204,
+          1204,
+          1204,
+          1204
+        ]
+      },
+      "gB": {
+        "st": 48,
+        "ind": 1,
+        "zoom": "175%",
+        "status": "1200 pages · p1",
+        "overlayBitmap": [
+          1071,
+          1386
+        ],
+        "overlayCss": [
+          1071,
+          1386
+        ],
+        "pitches": [
+          1402,
+          1402,
+          1402,
+          1402,
+          1402
+        ]
+      }
+    }
+  },
+  "consoleErrors": [],
+  "checks": [
+    {
+      "id": "T0",
+      "name": "indicator 600",
+      "pass": true,
+      "detail": 600
+    },
+    {
+      "id": "T0",
+      "name": "overlay-600 in viewport",
+      "pass": true,
+      "detail": {
+        "top": 44,
+        "inView": true
+      }
+    },
+    {
+      "id": "T0'",
+      "name": "indicator vs DOM truth ≤1",
+      "pass": true,
+      "detail": {
+        "ind": 600,
+        "truth": 600
+      }
+    },
+    {
+      "id": "T3'",
+      "name": "pitch uniform (slots 1..1200)",
+      "pass": true,
+      "detail": [
+        808,
+        808,
+        808,
+        808,
+        808
+      ]
+    },
+    {
+      "id": "C1",
+      "name": "overlay bitmap page-sized @100%",
+      "pass": true,
+      "detail": [
+        612,
+        792
+      ]
+    },
+    {
+      "id": "C1",
+      "name": "overlay CSS fills page box",
+      "pass": true,
+      "detail": [
+        612,
+        792
+      ]
+    },
+    {
+      "id": "C2",
+      "name": "mount scroll landed on p3 (top −4±6)",
+      "pass": true,
+      "detail": 1664
+    },
+    {
+      "id": "T1",
+      "name": "1 annotation stored",
+      "pass": true,
+      "detail": 1
+    },
+    {
+      "id": "T1",
+      "name": "annotation on page 3",
+      "pass": true
+    },
+    {
+      "id": "C1a",
+      "name": "rect in PDF units, full-width band",
+      "pass": true,
+      "detail": [
+        40,
+        580,
+        532,
+        14
+      ]
+    },
+    {
+      "id": "T1",
+      "name": "highlight pixel live",
+      "pass": true,
+      "detail": [
+        252,
+        225,
+        72,
+        85
+      ]
+    },
+    {
+      "id": "T4",
+      "name": "restore beats deep link (ind=3 over ?page=1)",
+      "pass": true,
+      "detail": 3
+    },
+    {
+      "id": "T4",
+      "name": "badge annos-3 = 1",
+      "pass": true
+    },
+    {
+      "id": "T1",
+      "name": "highlight pixel after reload",
+      "pass": true,
+      "detail": [
+        252,
+        225,
+        72,
+        85
+      ]
+    },
+    {
+      "id": "C1",
+      "name": "overlay bitmap @150% = 918x1188",
+      "pass": true,
+      "detail": [
+        918,
+        1188
+      ]
+    },
+    {
+      "id": "T2",
+      "name": "highlight pixel @150%",
+      "pass": true,
+      "detail": [
+        252,
+        225,
+        72,
+        85
+      ]
+    },
+    {
+      "id": "C1",
+      "name": "overlay bitmap re-sized @175% = 1071x1386",
+      "pass": true,
+      "detail": [
+        1071,
+        1386
+      ]
+    },
+    {
+      "id": "T2",
+      "name": "highlight pixel survives 150→175 rescale",
+      "pass": true,
+      "detail": [
+        252,
+        225,
+        72,
+        85
+      ]
+    },
+    {
+      "id": "T2",
+      "name": "zoom persisted 1.75",
+      "pass": true,
+      "detail": 1.75
+    },
+    {
+      "id": "T2",
+      "name": "highlight pixel after zoom reload",
+      "pass": true,
+      "detail": [
+        252,
+        225,
+        72,
+        85
+      ]
+    }
+  ],
+  "finishedAt": "2026-10-12T16:43:04.194Z"
+}
