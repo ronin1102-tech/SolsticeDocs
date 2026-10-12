@@ -10,4 +10,5 @@ Mid-build ideas and deferred scope go here, not into the build. (scope-first rul
 - FTS5 search across 500 docs
 - 35MB idle-memory target revisit (Vesper gates 120MB interim)
 - Highlight-queue recovery contract (Tracy's call pending; current contract = durable-on-stroke-end)
+- Thumbnails off-main-thread (DOCS-03-RENDER park, 2026-10-12: budget call — windowing shipped, thumbs await a dedicated session)
 - Face-lift: rename GitHub remote `Solstice-Docs` → `SolsticeDocs` (cosmetic only; local renamed 2026-10-12)

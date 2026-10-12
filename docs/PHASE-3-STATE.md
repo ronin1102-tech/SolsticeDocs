@@ -1,5 +1,12 @@
 # DOCS-03-RENDER — State Handoff (mid-flight, NOT phase-complete)
 
+> **CLOSE-OUT 2026-10-12 — supersede below (commit `ab19545`).** QA battery ran same day:
+> scroll PASS (maxDrift 1, long-task max 220ms). Three defects found and FIXED — deep-link
+> scroll, overlay 300×150 sizing, PDF-units contract — battery v2 **20/20**
+> (`qa/evidence/docs-battery-v2-results.json`). Thumbnails parked to `v2.txt`.
+> Spec: `docs/RENDER-SPEC.md`. NOT-VERIFIED items 1–3 below are now verified; the /__qa
+> no-op note stands. Sections below kept as the pre-fix record.
+
 Date: 2026-10-12 · Commit: `c0e2174` (WIP) · Reason: token budget — Tracy called it, handoff now.
 
 ## State: what exists and works
