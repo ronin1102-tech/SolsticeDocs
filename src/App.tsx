@@ -1,6 +1,23 @@
-// Solstice Docs — Phase 2 shell: header + storage status card (exercises the
-// ADR-0001 ipc seam: shows STORAGE:NATIVE in-app, STORAGE:BROWSER in Chrome).
+import { useEffect, useState } from "react";
+import { openDoc, type Doc } from "./lib/pdf";
+import { clearSession } from "./lib/store";
+import Viewer from "./Viewer";
+
 export default function App() {
+  const [doc, setDoc] = useState<Doc | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const filePath = "/test-fixtures/gen-1200.pdf";
+  // Deep link: ?page=N&zoom=Z (also the QA jump path)
+  const params = new URLSearchParams(location.search);
+  const initialPage = Math.max(1, parseInt(params.get("page") || "1", 10) || 1);
+  const initialZoom = Math.min(3, Math.max(0.5, parseFloat(params.get("zoom") || "1") || 1));
+
+  useEffect(() => {
+    openDoc(filePath)
+      .then(setDoc)
+      .catch((e) => setErr(String(e)));
+  }, [filePath]);
+
   const inTauri =
     typeof window !== "undefined" &&
     ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
@@ -18,26 +35,30 @@ export default function App() {
           Solstice Docs
         </span>
         <span data-tauri-drag-region className="ml-3 text-[10px] text-zinc-600">
-          phase 2 · storage core
+          phase 3 · render
         </span>
         <span className="ml-auto flex items-center gap-1.5 text-[10px] text-zinc-600">
           <span className="h-1.5 w-1.5 rounded-full bg-electric" />
-          local-first · no network
+          {inTauri ? "STORAGE:NATIVE" : "STORAGE:BROWSER"}
         </span>
       </header>
-      <main className="flex flex-1 items-center justify-center">
-        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-5 text-sm">
-          <p className="text-zinc-400">
-            SQLite core (rusqlite · WAL · user_version migrations) — exercised by
-            <span className="text-electric"> cargo test</span> evidence.
-          </p>
-          <p className="mt-2 text-xs text-zinc-600">
-            IPC transport:{" "}
-            <span className="text-electric">
-              {inTauri ? "STORAGE:NATIVE (tauri invoke)" : "STORAGE:BROWSER (shim — sidecar lands Phase 3)"}
-            </span>
-          </p>
-        </div>
+      <main className="relative flex-1 overflow-hidden">
+        {err && (
+          <div className="p-6">
+            <p className="text-sm text-red-400">Failed to open fixture: {err}</p>
+            <button
+              className="mt-3 rounded border border-white/10 px-2 py-1 text-xs text-zinc-400"
+              onClick={() => {
+                clearSession();
+                location.reload();
+              }}
+            >
+              clear session + reload
+            </button>
+          </div>
+        )}
+        {!err && !doc && <p className="p-6 text-sm text-zinc-500">opening fixture…</p>}
+        {doc && <Viewer doc={doc} filePath={filePath} initialPage={initialPage} initialZoom={initialZoom} />}
       </main>
     </div>
   );
