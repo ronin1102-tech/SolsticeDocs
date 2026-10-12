@@ -9,6 +9,22 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Catalina boot-error trap: makes webview JS failures visible on the page.
+      document.documentElement.style.background = "#0A0B0E"; // "inline JS ran" marker
+      window.addEventListener("error", function (e) {
+        var d = document.createElement("pre");
+        d.style.cssText = "color:#f87171;background:#0A0B0E;font:12px/1.5 Menlo,monospace;padding:16px;white-space:pre-wrap;position:fixed;top:0;left:0;right:0;z-index:99999;margin:0";
+        d.textContent = "BOOT ERROR: " + (e.message || String(e.error || e)) + " @ " + (e.filename || "") + ":" + (e.lineno || "") + ":" + (e.colno || "");
+        document.body.appendChild(d);
+      });
+      window.addEventListener("unhandledrejection", function (e) {
+        var d = document.createElement("pre");
+        d.style.cssText = "color:#fbbf24;font:12px/1.5 Menlo,monospace;padding:8px 16px;position:fixed;bottom:0;left:0;right:0;z-index:99999;margin:0;background:#0A0B0E";
+        d.textContent = "PROMISE REJECTION: " + (e.reason && e.reason.message ? e.reason.message : String(e.reason));
+        document.body.appendChild(d);
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
