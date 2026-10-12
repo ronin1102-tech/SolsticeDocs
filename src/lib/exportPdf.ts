@@ -7,7 +7,14 @@ import { ipc } from "./ipc";
 import { PAGE_W, PAGE_H } from "./pdf";
 import type { StoredAnnotation } from "./store";
 
-export async function exportPdf(sourcePath: string, annos: StoredAnnotation[]): Promise<string> {
+// dims = the page boxes capture used (PDF.js viewport units, per page). Scaling by
+// PAGE_W/PAGE_H constants instead raised every stamp ~6% on non-letter docs —
+// Tracy's thesis exports landed "a couple of lines above" the drawn spot.
+export async function exportPdf(
+  sourcePath: string,
+  annos: StoredAnnotation[],
+  dims: Map<number, { w: number; h: number }>
+): Promise<string> {
   const { fetchBytes } = await import("./ipcFetch");
   const { sourceUrlAsync } = await import("./ipc");
   const src = await fetchBytes(await sourceUrlAsync(sourcePath));
@@ -19,8 +26,9 @@ export async function exportPdf(sourcePath: string, annos: StoredAnnotation[]): 
     const page = pages[a.page - 1];
     if (!page) continue;
     const { width, height } = page.getSize();
-    const sx = width / PAGE_W; // our rects are in 612x792 user-space
-    const sy = height / PAGE_H;
+    const cap = dims.get(a.page) ?? { w: PAGE_W, h: PAGE_H };
+    const sx = width / cap.w; // stored rects are in the captured page's own units
+    const sy = height / cap.h;
     const col = hexToRgb(a.color);
     for (const [x, y, w, h] of a.rects) {
       if (a.type === "highlight") {

@@ -110,7 +110,7 @@ export default function Viewer({
   const onExport = async () => {
     setStatus("exporting…");
     try {
-      const to = await exportPdf(filePath, annos);
+      const to = await exportPdf(filePath, annos, dims);
       setStatus(`exported → ${to.split("/").pop()}`);
     } catch (e) {
       setStatus(`export failed: ${String(e).slice(0, 60)}`);
@@ -439,7 +439,9 @@ function PageView({
     c.height = Math.round(dim.h * zoom * k);
     drawOverlayFor(num, c); // paint stored annos onto the fresh bitmap
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zoom]);
+  }, [zoom, dim.w, dim.h]); // dim: bitmap sized at fallback (pre-dims-load) MUST re-size
+  // when real page geometry lands, else bitmap (letter) ≠ CSS box (A4) — the
+  // "highlight raised a couple of lines" bug Tracy hit on the thesis doc.
 
   return (
     <div className={SLOT_CLS} style={{ width: dim.w * zoom, height: dim.h * zoom }}>

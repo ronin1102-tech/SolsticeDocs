@@ -111,3 +111,23 @@ NOT VERIFIED (next session, ~10 min):
 3. `qa/` evidence file + phase report + commit + push. Vesper audits after WRITE, not now.
 
 Lane rules unchanged: commit before self-edit, push per phase, per-edit approval hard.
+
+## Offset bug — ROOT-CAUSED & FIXED (2026-10-12 ~7 PM, commit below)
+
+Tracy's export tests (solstice-thesis, A4 595.92×842.88) showed highlights "raised a
+couple of lines" in Preview. Disk-forensics (files he copied to tmp-offset/, no PDFs in
+chat) split it into TWO letter-constant leftovers, both fixed:
+
+1. **Paint half:** overlay BITMAP stayed at the letter fallback (612×792) when a non-letter
+   doc's dims landed async — CSS box showed true A4, bitmap painted letter-space, so the
+   visible highlight sat ~6% high. Fix: PageView sizing effect deps now `[zoom, dim.w, dim.h]`.
+   Verified headless on the actual thesis (fixture-swapped into dist): bitmap [596,843]
+   matches CSS [595.9,842.9]; capture fractions exact (0.30→0.2993).
+2. **Export half:** exportPdf scaled stored coords by PAGE_W/PAGE_H constants (letter),
+   so stored A4-units got ×1.064 — stamps raised at export even with correct storage.
+   Fix: exportPdf takes the per-page `dims` map; scale = page.getSize() ÷ captured units.
+   Verified numerically: exported rect top = 21.0% = stored 21.0%, drift 0.00%.
+
+Also confirmed: old underlines at x=601.5 in the DB are pre-geometry letter-space
+contamination (page is only 595.92 wide) — stale data, not a live bug.
+Battery 20/20 post-fix; jsc sweep clean; fixtures restored (tmp-offset/ holds the copies).
