@@ -1,3 +1,5 @@
+> **ALIGNMENT 2026-10-12:** HTTP-shim backend for browser dev mode lands with Phase 2 (src/lib/ipc.ts seam, ADR-0001).
+
 # Solstice Docs — Parking Lot (v2)
 
 Mid-build ideas and deferred scope go here, not into the build. (scope-first rule)

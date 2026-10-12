@@ -1,7 +1,10 @@
-// Solstice Docs — Phase 1 shell.
-// The header is the custom draggable title bar: `titleBarStyle: "Overlay"`
-// keeps the native traffic lights floating over it (see docs/window-config.md).
+// Solstice Docs — Phase 2 shell: header + storage status card (exercises the
+// ADR-0001 ipc seam: shows STORAGE:NATIVE in-app, STORAGE:BROWSER in Chrome).
 export default function App() {
+  const inTauri =
+    typeof window !== "undefined" &&
+    ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-obsidian font-sans text-zinc-200 select-none">
       <header
@@ -15,7 +18,7 @@ export default function App() {
           Solstice Docs
         </span>
         <span data-tauri-drag-region className="ml-3 text-[10px] text-zinc-600">
-          phase 1 · shell
+          phase 2 · storage core
         </span>
         <span className="ml-auto flex items-center gap-1.5 text-[10px] text-zinc-600">
           <span className="h-1.5 w-1.5 rounded-full bg-electric" />
@@ -23,9 +26,18 @@ export default function App() {
         </span>
       </header>
       <main className="flex flex-1 items-center justify-center">
-        <p className="text-sm text-zinc-600">
-          Workspace shell — storage (Phase 2) and render (Phase 3) land here.
-        </p>
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-5 text-sm">
+          <p className="text-zinc-400">
+            SQLite core (rusqlite · WAL · user_version migrations) — exercised by
+            <span className="text-electric"> cargo test</span> evidence.
+          </p>
+          <p className="mt-2 text-xs text-zinc-600">
+            IPC transport:{" "}
+            <span className="text-electric">
+              {inTauri ? "STORAGE:NATIVE (tauri invoke)" : "STORAGE:BROWSER (shim — sidecar lands Phase 3)"}
+            </span>
+          </p>
+        </div>
       </main>
     </div>
   );

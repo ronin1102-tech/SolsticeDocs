@@ -1,3 +1,5 @@
+> **ALIGNMENT 2026-10-12:** Dev renderer = Chrome per docs/ADR-0001-chrome-dev.md (Catalina webview quarantined, upstream wry#1678). Window-config visual checks deferred to newer macOS / release build. Phase-2 spec below unchanged otherwise.
+
 # Solstice Docs — Phase 1 Scope (DOCS-01-INIT)
 
 Date: 2026-10-12 · Drafted by Cori from Vesper's brief + repo inspection · Status: AWAITING TRACY'S GO

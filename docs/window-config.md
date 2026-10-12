@@ -1,3 +1,5 @@
+> **ALIGNMENT 2026-10-12:** Verified in Chrome only; native window behavior (drag, traffic lights) UNVERIFIED on this machine per ADR-0001 — owner: Tracy (newer macOS or `tauri build` release test).
+
 # Window configuration — SolsticeDocs (Phase 1)
 
 Decision record for `src-tauri/tauri.conf.json` → `app.windows[0]`.
