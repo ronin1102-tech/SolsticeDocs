@@ -1,0 +1,6 @@
+INFO {"bitmap":[300,150],"css":[300,150],"top":1708,"ind":"3"}
+BOX {"x":334,"y":92,"width":300,"height":150} evts: 0
+A(trusted) {"evts":5,"ls":false,"px":[0,0,0,0]}
+B(synthetic) {"ls":"{\"filePath\":\"/test-fixtures/gen-1200.pdf\",\"hash\":\"/test-fixtures/gen-1200.pdf\",\"title\":\"/test-fixtures/gen-1200.pdf\",\"lastPage\":3,\"zoom\":1,\"annotations\":[{\"id\":1791820792722,\"page\":3,\"type\":\"highlight\",\"color\":\"#FDE047\","}
+stored: {"n":1,"rects":[[163.2,382,307.00000000000006,14]]}
+after reload: {"ind":"3","badge":"1","bitmap":[300,150],"midPixel":[0,0,0,0],"anyYellow":null}

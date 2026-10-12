@@ -1,0 +1,728 @@
+{
+  "startedAt": "2026-10-12T15:55:49.972Z",
+  "base": "http://localhost:1420",
+  "subtests": {
+    "T0_deeplink_p600": {
+      "checks": [
+        {
+          "name": "indicator shows 600",
+          "pass": true,
+          "detail": "600"
+        },
+        {
+          "name": "p600 canvas rendered (window)",
+          "pass": true
+        },
+        {
+          "name": "viewport actually at page 600",
+          "pass": false,
+          "detail": {
+            "overlay600ViewportY": 474548,
+            "scrollTop": 0
+          }
+        }
+      ],
+      "readout": {
+        "st": 0,
+        "ind": "600",
+        "zoom": "100%",
+        "status": "rendering p600",
+        "lt": 0,
+        "ltTotal": 0
+      }
+    },
+    "T1_anno_persist_reload": {
+      "checks": [
+        {
+          "name": "STORAGE:BROWSER badge",
+          "pass": true,
+          "detail": "SOLSTICE DOCS phase 3 · render STORAGE:BROWSER"
+        },
+        {
+          "name": "session saved after stroke",
+          "pass": false
+        },
+        {
+          "name": "1 annotation stored",
+          "pass": false
+        },
+        {
+          "name": "annotation on page 3",
+          "pass": false
+        },
+        {
+          "name": "rects in PDF units",
+          "pass": false
+        },
+        {
+          "name": "highlight pixel visible live",
+          "pass": false,
+          "detail": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "restored to page 3 (not deep-link 1)",
+          "pass": false,
+          "detail": "1"
+        },
+        {
+          "name": "annos-3 hook count restored",
+          "pass": false,
+          "detail": null
+        },
+        {
+          "name": "highlight pixel visible after reload",
+          "pass": false,
+          "detail": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "pixels": {
+        "livePixel": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "pixelReload": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "T2_zoom_roundtrip": {
+      "checks": [
+        {
+          "name": "zoom 150% from deep link",
+          "pass": true,
+          "detail": "150%"
+        },
+        {
+          "name": "highlight pixel at 150%",
+          "pass": false,
+          "detail": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "highlight pixel survives 150→175 rescale",
+          "pass": false,
+          "detail": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "zoom persisted 1.75",
+          "pass": true,
+          "detail": 1.75
+        },
+        {
+          "name": "indicator restored 175% (over deep-link 150%)",
+          "pass": true
+        },
+        {
+          "name": "highlight pixel after zoom-reload",
+          "pass": false,
+          "detail": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "pixels": {
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "afterReload": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "T3_deep_scroll": {
+      "checks": [
+        {
+          "name": "reached bottom (true p1200)",
+          "pass": false,
+          "detail": {
+            "scrollTop": 949772
+          }
+        },
+        {
+          "name": "indicator tracks within ±1 whole way",
+          "pass": false,
+          "detail": {
+            "maxDrift": 29
+          }
+        },
+        {
+          "name": "no long task > 300ms",
+          "pass": true,
+          "detail": {
+            "ltCount": 77,
+            "ltTotalMs": 10668,
+            "ltMaxMs": 213
+          }
+        }
+      ],
+      "samples": [
+        {
+          "st": 25000,
+          "ind": "33",
+          "zoom": "100%",
+          "status": "1200 pages · p1",
+          "lt": 2,
+          "ltTotal": 282,
+          "truePage": 31,
+          "drift": 2
+        },
+        {
+          "st": 50000,
+          "ind": "64",
+          "zoom": "100%",
+          "status": "rendering p61",
+          "lt": 3,
+          "ltTotal": 333,
+          "truePage": 62,
+          "drift": 2
+        },
+        {
+          "st": 75000,
+          "ind": "64",
+          "zoom": "100%",
+          "status": "rendering p63",
+          "lt": 5,
+          "ltTotal": 574,
+          "truePage": 93,
+          "drift": -29
+        },
+        {
+          "st": 100000,
+          "ind": "127",
+          "zoom": "100%",
+          "status": "rendering p93",
+          "lt": 7,
+          "ltTotal": 867,
+          "truePage": 124,
+          "drift": 3
+        },
+        {
+          "st": 125000,
+          "ind": "159",
+          "zoom": "100%",
+          "status": "rendering p156",
+          "lt": 8,
+          "ltTotal": 1040,
+          "truePage": 155,
+          "drift": 4
+        },
+        {
+          "st": 150000,
+          "ind": "190",
+          "zoom": "100%",
+          "status": "rendering p159",
+          "lt": 10,
+          "ltTotal": 1239,
+          "truePage": 186,
+          "drift": 4
+        },
+        {
+          "st": 175000,
+          "ind": "190",
+          "zoom": "100%",
+          "status": "rendering p188",
+          "lt": 12,
+          "ltTotal": 1532,
+          "truePage": 217,
+          "drift": -27
+        },
+        {
+          "st": 200000,
+          "ind": "254",
+          "zoom": "100%",
+          "status": "rendering p251",
+          "lt": 14,
+          "ltTotal": 1750,
+          "truePage": 248,
+          "drift": 6
+        },
+        {
+          "st": 225000,
+          "ind": "285",
+          "zoom": "100%",
+          "status": "rendering p253",
+          "lt": 15,
+          "ltTotal": 1912,
+          "truePage": 279,
+          "drift": 6
+        },
+        {
+          "st": 250000,
+          "ind": "285",
+          "zoom": "100%",
+          "status": "rendering p283",
+          "lt": 17,
+          "ltTotal": 2221,
+          "truePage": 310,
+          "drift": -25
+        },
+        {
+          "st": 275000,
+          "ind": "348",
+          "zoom": "100%",
+          "status": "rendering p315",
+          "lt": 19,
+          "ltTotal": 2442,
+          "truePage": 341,
+          "drift": 7
+        },
+        {
+          "st": 300000,
+          "ind": "348",
+          "zoom": "100%",
+          "status": "rendering p346",
+          "lt": 21,
+          "ltTotal": 2738,
+          "truePage": 372,
+          "drift": -24
+        },
+        {
+          "st": 325000,
+          "ind": "411",
+          "zoom": "100%",
+          "status": "rendering p408",
+          "lt": 23,
+          "ltTotal": 3046,
+          "truePage": 403,
+          "drift": 8
+        },
+        {
+          "st": 350000,
+          "ind": "411",
+          "zoom": "100%",
+          "status": "rendering p410",
+          "lt": 24,
+          "ltTotal": 3103,
+          "truePage": 434,
+          "drift": -23
+        },
+        {
+          "st": 375000,
+          "ind": "443",
+          "zoom": "100%",
+          "status": "rendering p441",
+          "lt": 27,
+          "ltTotal": 3554,
+          "truePage": 465,
+          "drift": -22
+        },
+        {
+          "st": 400000,
+          "ind": "506",
+          "zoom": "100%",
+          "status": "rendering p503",
+          "lt": 28,
+          "ltTotal": 3701,
+          "truePage": 496,
+          "drift": 10
+        },
+        {
+          "st": 425000,
+          "ind": "538",
+          "zoom": "100%",
+          "status": "rendering p506",
+          "lt": 30,
+          "ltTotal": 4006,
+          "truePage": 526,
+          "drift": 12
+        },
+        {
+          "st": 450000,
+          "ind": "569",
+          "zoom": "100%",
+          "status": "rendering p566",
+          "lt": 33,
+          "ltTotal": 4375,
+          "truePage": 557,
+          "drift": 12
+        },
+        {
+          "st": 475000,
+          "ind": "569",
+          "zoom": "100%",
+          "status": "rendering p568",
+          "lt": 34,
+          "ltTotal": 4451,
+          "truePage": 588,
+          "drift": -19
+        },
+        {
+          "st": 500000,
+          "ind": "601",
+          "zoom": "100%",
+          "status": "rendering p598",
+          "lt": 36,
+          "ltTotal": 4734,
+          "truePage": 619,
+          "drift": -18
+        },
+        {
+          "st": 525000,
+          "ind": "664",
+          "zoom": "100%",
+          "status": "rendering p661",
+          "lt": 39,
+          "ltTotal": 5087,
+          "truePage": 650,
+          "drift": 14
+        },
+        {
+          "st": 550000,
+          "ind": "664",
+          "zoom": "100%",
+          "status": "rendering p663",
+          "lt": 39,
+          "ltTotal": 5087,
+          "truePage": 681,
+          "drift": -17
+        },
+        {
+          "st": 575000,
+          "ind": "695",
+          "zoom": "100%",
+          "status": "rendering p692",
+          "lt": 41,
+          "ltTotal": 5395,
+          "truePage": 712,
+          "drift": -17
+        },
+        {
+          "st": 600000,
+          "ind": "759",
+          "zoom": "100%",
+          "status": "rendering p756",
+          "lt": 43,
+          "ltTotal": 5725,
+          "truePage": 743,
+          "drift": 16
+        },
+        {
+          "st": 625000,
+          "ind": "759",
+          "zoom": "100%",
+          "status": "rendering p758",
+          "lt": 44,
+          "ltTotal": 5909,
+          "truePage": 774,
+          "drift": -15
+        },
+        {
+          "st": 650000,
+          "ind": "822",
+          "zoom": "100%",
+          "status": "rendering p819",
+          "lt": 48,
+          "ltTotal": 6463,
+          "truePage": 805,
+          "drift": 17
+        },
+        {
+          "st": 675000,
+          "ind": "822",
+          "zoom": "100%",
+          "status": "rendering p821",
+          "lt": 49,
+          "ltTotal": 6636,
+          "truePage": 836,
+          "drift": -14
+        },
+        {
+          "st": 700000,
+          "ind": "885",
+          "zoom": "100%",
+          "status": "rendering p882",
+          "lt": 52,
+          "ltTotal": 7117,
+          "truePage": 867,
+          "drift": 18
+        },
+        {
+          "st": 725000,
+          "ind": "916",
+          "zoom": "100%",
+          "status": "rendering p884",
+          "lt": 52,
+          "ltTotal": 7117,
+          "truePage": 898,
+          "drift": 18
+        },
+        {
+          "st": 750000,
+          "ind": "948",
+          "zoom": "100%",
+          "status": "rendering p914",
+          "lt": 54,
+          "ltTotal": 7415,
+          "truePage": 929,
+          "drift": 19
+        },
+        {
+          "st": 775000,
+          "ind": "980",
+          "zoom": "100%",
+          "status": "rendering p977",
+          "lt": 56,
+          "ltTotal": 7732,
+          "truePage": 960,
+          "drift": 20
+        },
+        {
+          "st": 800000,
+          "ind": "980",
+          "zoom": "100%",
+          "status": "rendering p979",
+          "lt": 58,
+          "ltTotal": 7943,
+          "truePage": 991,
+          "drift": -11
+        },
+        {
+          "st": 825000,
+          "ind": "1043",
+          "zoom": "100%",
+          "status": "rendering p1009",
+          "lt": 61,
+          "ltTotal": 8407,
+          "truePage": 1022,
+          "drift": 21
+        },
+        {
+          "st": 850000,
+          "ind": "1074",
+          "zoom": "100%",
+          "status": "rendering p1042",
+          "lt": 63,
+          "ltTotal": 8640,
+          "truePage": 1052,
+          "drift": 22
+        },
+        {
+          "st": 875000,
+          "ind": "1106",
+          "zoom": "100%",
+          "status": "rendering p1071",
+          "lt": 66,
+          "ltTotal": 9134,
+          "truePage": 1083,
+          "drift": 23
+        },
+        {
+          "st": 900000,
+          "ind": "1137",
+          "zoom": "100%",
+          "status": "rendering p1104",
+          "lt": 68,
+          "ltTotal": 9336,
+          "truePage": 1114,
+          "drift": 23
+        },
+        {
+          "st": 925000,
+          "ind": "1169",
+          "zoom": "100%",
+          "status": "rendering p1135",
+          "lt": 71,
+          "ltTotal": 9834,
+          "truePage": 1145,
+          "drift": 24
+        },
+        {
+          "st": 949772,
+          "ind": "1200",
+          "zoom": "100%",
+          "status": "rendering p1197",
+          "lt": 72,
+          "ltTotal": 9899,
+          "truePage": 1176,
+          "drift": 24
+        },
+        {
+          "st": 949772,
+          "ind": "1200",
+          "zoom": "100%",
+          "status": "rendering p1199",
+          "lt": 74,
+          "ltTotal": 10279,
+          "truePage": 1176,
+          "drift": 24
+        },
+        {
+          "st": 949772,
+          "ind": "1200",
+          "zoom": "100%",
+          "status": "1200 pages · p1200",
+          "lt": 77,
+          "ltTotal": 10668,
+          "truePage": 1176,
+          "drift": 24
+        },
+        {
+          "st": 949772,
+          "ind": "1200",
+          "zoom": "100%",
+          "status": "1200 pages · p1200",
+          "lt": 77,
+          "ltTotal": 10668,
+          "truePage": 1176,
+          "drift": 24
+        },
+        {
+          "st": 949772,
+          "ind": "1200",
+          "zoom": "100%",
+          "status": "1200 pages · p1200",
+          "lt": 77,
+          "ltTotal": 10668,
+          "truePage": 1176,
+          "drift": 24
+        },
+        {
+          "st": 949772,
+          "ind": "1200",
+          "zoom": "100%",
+          "status": "1200 pages · p1200",
+          "lt": 77,
+          "ltTotal": 10668,
+          "truePage": 1176,
+          "drift": 24
+        },
+        {
+          "st": 949772,
+          "ind": "1200",
+          "zoom": "100%",
+          "status": "1200 pages · p1200",
+          "lt": 77,
+          "ltTotal": 10668,
+          "truePage": 1176,
+          "drift": 24
+        },
+        {
+          "st": 949772,
+          "ind": "1200",
+          "zoom": "100%",
+          "status": "1200 pages · p1200",
+          "lt": 77,
+          "ltTotal": 10668,
+          "truePage": 1176,
+          "drift": 24
+        },
+        {
+          "st": 949772,
+          "ind": "1200",
+          "zoom": "100%",
+          "status": "1200 pages · p1200",
+          "lt": 77,
+          "ltTotal": 10668,
+          "truePage": 1176,
+          "drift": 24
+        },
+        {
+          "st": 949772,
+          "ind": "1200",
+          "zoom": "100%",
+          "status": "1200 pages · p1200",
+          "lt": 77,
+          "ltTotal": 10668,
+          "truePage": 1200,
+          "drift": 0
+        }
+      ],
+      "longTasks": {
+        "count": 77,
+        "totalMs": 10668
+      }
+    }
+  },
+  "consoleErrors": [
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "finishedAt": "2026-10-12T15:56:59.990Z"
+}
