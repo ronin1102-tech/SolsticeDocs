@@ -9,7 +9,8 @@ import type { StoredAnnotation } from "./store";
 
 export async function exportPdf(sourcePath: string, annos: StoredAnnotation[]): Promise<string> {
   const { fetchBytes } = await import("./ipcFetch");
-  const src = await fetchBytes(sourcePath);
+  const { sourceUrlAsync } = await import("./ipc");
+  const src = await fetchBytes(await sourceUrlAsync(sourcePath));
   const doc = await PDFDocument.load(src);
   const pages = doc.getPages();
   const exported: StoredAnnotation[] = [];

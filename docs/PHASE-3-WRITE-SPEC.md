@@ -106,3 +106,13 @@ which is now jsc-verified parseable (build.rolldownOptions.transform.target=safa
 the build-side pin had been silently unenforced by Vite 8/Rolldown the same way dev was).
 Dev iteration on Catalina = Chrome browser + battery; native checks = production-mode app.
 ADR-0001 amendment candidate when Tracy calls it.
+
+### Dev-flow flip (2026-10-12, final)
+
+`tauri dev --no-dev-server` does NOT bypass the dev server on this CLI (beforeDevCommand
+still runs vite dev) — Tracy's run proved it; the webview kept loading dev bytes.
+Resolution: `build.beforeDevCommand` now runs `vite preview --port 4173 --strictPort` and
+`devUrl` points at it — `tauri dev` (plain) serves the jsc-verified production bundle.
+Catalina-native iteration = production bytes always; hot reload moved to Chrome/battery.
+Also fixed pre-emptively (would have broken on first native use): origin-relative paths
+(fixture) no longer routed through convertFileSrc; exportPdf fetches via sourceUrlAsync.
