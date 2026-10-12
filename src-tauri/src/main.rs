@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    cta_staging_lib::run()
+    solstice_docs_lib::run()
 }

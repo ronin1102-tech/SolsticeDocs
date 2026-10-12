@@ -1,51 +1,32 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
-
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
-
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
-
+// Solstice Docs — Phase 1 shell.
+// The header is the custom draggable title bar: `titleBarStyle: "Overlay"`
+// keeps the native traffic lights floating over it (see docs/window-config.md).
+export default function App() {
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
+    <div className="flex h-screen flex-col overflow-hidden bg-obsidian font-sans text-zinc-200 select-none">
+      <header
+        data-tauri-drag-region
+        className="flex h-10 shrink-0 items-center border-b border-white/5 bg-obsidian px-4"
       >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
+        <span
+          data-tauri-drag-region
+          className="text-xs font-semibold uppercase tracking-widest text-electric"
+        >
+          Solstice Docs
+        </span>
+        <span data-tauri-drag-region className="ml-3 text-[10px] text-zinc-600">
+          phase 1 · shell
+        </span>
+        <span className="ml-auto flex items-center gap-1.5 text-[10px] text-zinc-600">
+          <span className="h-1.5 w-1.5 rounded-full bg-electric" />
+          local-first · no network
+        </span>
+      </header>
+      <main className="flex flex-1 items-center justify-center">
+        <p className="text-sm text-zinc-600">
+          Workspace shell — storage (Phase 2) and render (Phase 3) land here.
+        </p>
+      </main>
+    </div>
   );
 }
-
-export default App;

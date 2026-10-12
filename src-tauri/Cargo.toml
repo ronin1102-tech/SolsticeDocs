@@ -1,8 +1,8 @@
 [package]
-name = "cta-staging"
+name = "solstice-docs"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "Solstice Docs — local-first PDF workspace"
+authors = ["Solstice AI"]
 edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -11,7 +11,7 @@ edition = "2024"
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
-name = "cta_staging_lib"
+name = "solstice_docs_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
@@ -25,6 +25,15 @@ serde_json = "1"
 
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
+# Catalina (10.15) dev workaround — issue tauri-apps/tauri#15431 / wry#1678:
+# objc2's dev-only debug assertion panics at window creation because wry
+# registers WKNavigationDelegate.didBecomeDownload (macOS 11.3+) that Catalina's
+# WebKit lacks. With assertions off the optional method is simply never called
+# on old OSes — a local-first PDF app never triggers it. Release builds are
+# unaffected (assertions are dev-only). Remove this block if we ever drop 10.15.
+[profile.dev.package.objc2]
+debug-assertions = false
+
 [profile.release]
 codegen-units = 1
 lto = true
