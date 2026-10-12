@@ -36,9 +36,12 @@ export interface DocState {
 // Asset-protocol URL for a local file (native mode); plain path in browser mode.
 export async function sourceUrlAsync(p: string): Promise<string> {
   if (!IN_TAURI) return p;
-  // origin-relative (bundled fixture, dist assets): fetch resolves against the
-  // page origin — convertFileSrc would mangle it into a bogus asset URL
-  if (p.startsWith("/")) return p;
+  // On macOS every ABSOLUTE filesystem path starts with "/" — those go through
+  // the asset protocol. Anything else (e.g. "test-fixtures/x.pdf") is an
+  // origin-relative bundled asset and must NOT be converted (Tracy's import run
+  // proved the old inverted guard: /Users/... was fetched from the web origin
+  // and SPA-fallback'd into index.html → Invalid PDF structure).
+  if (!p.startsWith("/")) return p;
   const { convertFileSrc } = await import("@tauri-apps/api/core");
   return convertFileSrc(p);
 }

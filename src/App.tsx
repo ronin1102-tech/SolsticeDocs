@@ -6,7 +6,7 @@ import { clearSession } from "./lib/store";
 import { ipc, sourceUrlAsync, type DocState } from "./lib/ipc";
 import Viewer from "./Viewer";
 
-const FIXTURE = "/test-fixtures/gen-1200.pdf";
+const FIXTURE = "test-fixtures/gen-1200.pdf"; // relative on purpose: bundled web asset, not an FS path
 const IN_TAURI =
   typeof window !== "undefined" &&
   ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
