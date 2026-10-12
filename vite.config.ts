@@ -21,6 +21,13 @@ export default defineConfig(() => ({
   build: {
     target: CATALINA_TARGET,
     cssTarget: CATALINA_TARGET,
+    // Vite 8 build runs Rolldown; build.target alone left ??=/||= in the chunk
+    // (jsc-verified on the Catalina engine class). Same pin as optimizeDeps.
+    rolldownOptions: {
+      transform: {
+        target: "safari13",
+      },
+    } as never,
   },
   optimizeDeps: {
     // Vite 8 dep-optimizer runs Rolldown/oxc and IGNORES esbuildOptions (with a

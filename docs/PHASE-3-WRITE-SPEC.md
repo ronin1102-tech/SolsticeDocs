@@ -95,3 +95,14 @@ export a new PDF with annotations stamped in. Text-editing-the-file is NOT in v1
   both modes same `Session` shape). Viewer never learned about storage — spec held.
 - **Compile-time registration proof:** `cargo test` builds the bin target (main.rs unittests
   ran), so `generate_handler!` registration of all new commands type-checks.
+
+### Dev-mode addendum (2026-10-12, post-GO)
+
+`tauri dev` on the Catalina webview produced a second, distinct failure (BOOT ERROR,
+"The string did not match the expected pattern", react-dom_client prebundle) AFTER the
+dev prebundle syntax was fixed — not reproducible via local jsc parse (newer JSC).
+Sidestep: `npx tauri dev --no-dev-server` runs the app against the production `dist/`,
+which is now jsc-verified parseable (build.rolldownOptions.transform.target=safari13 —
+the build-side pin had been silently unenforced by Vite 8/Rolldown the same way dev was).
+Dev iteration on Catalina = Chrome browser + battery; native checks = production-mode app.
+ADR-0001 amendment candidate when Tracy calls it.
