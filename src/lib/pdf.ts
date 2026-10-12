@@ -4,7 +4,7 @@ import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 // ?worker (NOT ?url): a raw asset URL bypasses every transform pin, and the worker
 // ships private-class-field syntax the Catalina engine cannot parse (jsc-verified:
 // 'Invalid character #'). Bundling it through Vite applies the safari13 downgrade.
-import PdfWorker from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?worker";
+import PdfWorker from "./pdf.worker.entry.ts?worker";
 
 pdfjsLib.GlobalWorkerOptions.workerPort = new PdfWorker();
 
