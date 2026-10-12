@@ -18,7 +18,7 @@ Pushed to `github.com/ronin1102-tech/Solstice-Docs` @ `4ec0ceb`.
 |---|---|---|
 | Window launches | `tauri dev`, log `Finished dev profile` + `Running target/debug/solstice-docs` | ✅ pid 36259, stable 4m+ (pre-fix crash died in ~2s) |
 | Tokens in compiled CSS | grep on `dist/assets/*.css` | ✅ `bg-obsidian{background-color:rgb(10 11 14)}` + `#3b82f6` |
-| Zero outbound network | `lsof -i` scoped to app pid, non-loopback filter | ✅ NO EXTERNAL CONNECTIONS |
+| Zero outbound network | `lsof -i` scoped to app pid **+ WebKit XPC helpers (Networking/WebContent)** — first pass scoped to the app pid only; WebKit does webview networking in a separate XPC process | ✅ webview helpers hold only a loopback socket to the dev server; zero non-loopback sockets |
 | Frontend builds | `npm run build` (tsc + vite) | ✅ 16 modules, clean |
 | Catalina crash fixed | before/after launch logs | ✅ without `[profile.dev.package.objc2] debug-assertions=false`: abort at window creation; with it: stable |
 
