@@ -4,9 +4,29 @@ import react from "@vitejs/plugin-react";
 import process from "node:process";
 const host = process.env.TAURI_DEV_HOST;
 
+// Catalina constraint (macOS 10.15.7 build machine): WKWebView is Safari-14.1-class.
+// Vite 8's default target ("baseline-widely-available") is safari16.4 — its output
+// does not parse in the Catalina webview and the app renders a blank white window.
+// Pin every esbuild path to safari14. Remove when 10.15 support is dropped.
+const CATALINA_TARGET = "safari14";
+
 // https://vite.dev/config/
 export default defineConfig(() => ({
   plugins: [react()],
+
+  // Catalina: see CATALINA_TARGET above
+  esbuild: {
+    target: CATALINA_TARGET,
+  },
+  build: {
+    target: CATALINA_TARGET,
+    cssTarget: CATALINA_TARGET,
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: CATALINA_TARGET,
+    },
+  },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //

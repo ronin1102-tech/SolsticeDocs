@@ -41,6 +41,18 @@ false`. Maintainer-endorsed pattern (same class of bug closed via wry#1781). Dev
 builds never had the assertion. The unimplemented delegate method is never invoked by a
 local-first PDF app. Remove if 10.15 support is ever dropped.
 
+## Postscript — white-screen fix (same session)
+
+Post-merge visual check FAILED: window launched but rendered blank white. Root cause: Vite 8
+default target `safari16.4` vs Catalina's Safari-14.1-class WKWebView — served bundle used
+syntax the webview can't parse. Fix: pin `esbuild.target` / `build.target` / `cssTarget` /
+`optimizeDeps` to `safari14` in `vite.config.ts`. Verified: fresh prebundles contain 0 hits of
+`??=`/`static{}`/`.at(`/`?.`; served `src/main.tsx` fully downleveled; app relaunched with fresh
+WebContent helper attached and zero non-loopback sockets (helper-aware sweep).
+
+Rule for this project: **any new toolchain addition gets its minimum-OS checked before it touches
+the build** — Tauri's pin is Cargo.toml, Vite's is `target`, the next offender will be different.
+
 ## Carry-forwards
 
 - v1 hard gates still pending Tracy's call: 35MB→120MB interim (memory), 20ms→150ms p50 (FTS5),
