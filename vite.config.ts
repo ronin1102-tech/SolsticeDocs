@@ -42,6 +42,17 @@ export default defineConfig(() => ({
     } as never, // typed as RolldownOptions; transform.target validated empirically
   },
 
+  // Worker bundles are a FIFTH separate Rolldown pass with their own options —
+  // without this the pdf.js worker ships ??=/||=/# and the Catalina engine
+  // throws at Worker construction (jsc-verified).
+  worker: {
+    rolldownOptions: {
+      transform: {
+        target: "safari13",
+      },
+    } as never,
+  },
+
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent Vite from obscuring rust errors

@@ -116,3 +116,12 @@ Resolution: `build.beforeDevCommand` now runs `vite preview --port 4173 --strict
 Catalina-native iteration = production bytes always; hot reload moved to Chrome/battery.
 Also fixed pre-emptively (would have broken on first native use): origin-relative paths
 (fixture) no longer routed through convertFileSrc; exportPdf fetches via sourceUrlAsync.
+
+### Worker pin (2026-10-12, final)
+
+Third Vite-8 transform surface found on Tracy's hardware run: the pdf.js worker. `?url`
+raw assets bypass ALL pins (BOOT ERROR "Invalid character '#'" at Worker construction);
+`?worker` bundling uses yet another Rolldown pass — pinned via `worker.rolldownOptions.
+transform.target=safari13`. Final jsc sweep: 5/5 assets parse (worker verified as classic
+script too). Rule of thumb this taught us: Vite 8 has FIVE separate syntax surfaces
+(optimizeDeps, build, css, worker, legacy) — a pin on one says nothing about the others.

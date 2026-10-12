@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "identifier": "ai.solstice.docs",
   "build": {
-    "beforeDevCommand": "vite preview --port 4173 --strictPort",
+    "beforeDevCommand": "npm run build && vite preview --port 4173 --strictPort",
     "devUrl": "http://localhost:4173",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"

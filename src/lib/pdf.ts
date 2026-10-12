@@ -1,9 +1,12 @@
 // PDF.js — legacy build (Safari-14-class syntax, per ADR-0001/Catalina pins),
 // worker bundled locally via ?url (no CDN, no network — local-first).
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
-import workerUrl from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
+// ?worker (NOT ?url): a raw asset URL bypasses every transform pin, and the worker
+// ships private-class-field syntax the Catalina engine cannot parse (jsc-verified:
+// 'Invalid character #'). Bundling it through Vite applies the safari13 downgrade.
+import PdfWorker from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?worker";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+pdfjsLib.GlobalWorkerOptions.workerPort = new PdfWorker();
 
 export type Doc = pdfjsLib.PDFDocumentProxy;
 
